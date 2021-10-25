@@ -19,16 +19,18 @@ async function run() {
         await client.connect();
         const database = client.db('online_shop');
         const productCollection = database.collection('products');
-
+        console.log('Connected with db');
         // get products api
         app.get('/products', async (req, res) => {
             const cursor = productCollection.find({});
             const products = await cursor.toArray();
-            res.send(products);
+            const count = await cursor.count();
+            res.send({
+                count,
+                products
+            })
         })
     }
-
-
 
     finally {
         // await client.close();
