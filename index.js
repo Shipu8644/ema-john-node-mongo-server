@@ -2,10 +2,23 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { MongoClient } = require('mongodb');
+var admin = require("firebase-admin");
+
 
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+// firebase admin initialization
+
+
+
+var serviceAccount = require("./ema-john-simple-784b5-firebase-adminsdk-x0nvv-608d3bf1d5.json");
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+
 
 // middleware
 app.use(cors());
@@ -13,6 +26,14 @@ app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.om5y9.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+async function verifyToken(req, res, next) {
+    if (req.headers?.authorization?.startsWith('Bearer ')) {
+        const idToken = req.headers.authorization.split('Bearer ')[1];
+        console.log('inside sep function', idToken);
+    }
+    next();
+}
 
 async function run() {
     try {
@@ -55,10 +76,11 @@ async function run() {
         });
 
         // get orders Api
-        app.get('/orders', async (req, res) => {
+        app.get('/orders', verifyToken, async (req, res) => {
+
             let query = {};
             const email = req.query.email;
-            console.log(email);
+            // console.log(email);
             if (email) {
                 query = { email: email }
             }
